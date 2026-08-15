@@ -25,8 +25,16 @@ python3 --version
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Ixdcodes/india-sector-screener.git
+git clone https://github.com/Ishaan3H/india-sector-screener.git
 ```
+
+> **This repository is private.** Cloning it requires a GitHub account that has
+> been granted access (Settings → Collaborators), and that account must be
+> authenticated — either signed in via the [GitHub CLI](https://cli.github.com)
+> (`gh auth login`, then `gh repo clone Ishaan3H/india-sector-screener`) or using
+> a personal access token / SSH key. Without access the clone fails with
+> `repository not found`. If you'd rather not deal with credentials, download the
+> ZIP from the repo's green **Code** button and unzip it instead.
 
 ### 2. Enter the folder
 
