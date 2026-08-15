@@ -329,7 +329,8 @@ def build_html(d):
     lead = sectors[0]
     lag = sectors[-1]
 
-    return f"""<title>Indian Market Weekly Sector Screener</title>
+    return f"""<meta charset="utf-8">
+<title>Indian Market Weekly Sector Screener</title>
 <style>
 :root {{
   color-scheme: light;
@@ -568,8 +569,10 @@ footer b {{ color:var(--ink-2); }}
 
 
 if __name__ == "__main__":
-    with open(DATA) as fh:
+    # encoding is explicit everywhere: Python defaults to the locale encoding on
+    # Windows (cp1252), which cannot represent the rupee sign or the arrows.
+    with open(DATA, encoding="utf-8") as fh:
         data = json.load(fh)
-    with open(OUT, "w") as fh:
+    with open(OUT, "w", encoding="utf-8") as fh:
         fh.write(build_html(data))
     print(f"wrote {OUT}")

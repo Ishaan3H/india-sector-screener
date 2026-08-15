@@ -12,59 +12,121 @@ indices (Nifty 50, Sensex, Nifty 500, Midcap 50, Smallcap 250).
 
 ## Download and run
 
-**Requirements:** Python **3.8 or newer** and git. Nothing else — the project uses
-only the Python standard library, so there is **no `pip install` step** and no
-virtualenv to set up.
+**The only requirement is Python 3.8 or newer.** The project uses nothing but the
+Python standard library, so there is **no `pip install` step**, no virtualenv, and
+no other dependencies.
 
-Check your Python first:
+Pick your platform:
 
-```bash
-python3 --version
+- [Windows](#windows)
+- [macOS / Linux](#macos--linux)
+
+---
+
+### Windows
+
+#### 1. Install Python
+
+Skip this if you already have it — open **PowerShell** (press <kbd>Win</kbd>, type
+`powershell`, hit Enter) and check:
+
+```powershell
+py --version
 ```
 
-### 1. Clone the repository
+If that prints something like `Python 3.12.1`, you're set. If it says the term is
+not recognized, install Python either way:
 
-```bash
+- **Easiest:** download the installer from
+  [python.org/downloads/windows](https://www.python.org/downloads/windows/) and run it.
+  On the first screen, **tick "Add python.exe to PATH"** before clicking Install —
+  this is the single most common thing people miss, and skipping it is why
+  `python` later comes back "not recognized".
+- **Or via winget:** `winget install Python.Python.3.12`
+
+Close and reopen PowerShell afterwards, then re-run `py --version` to confirm.
+
+> **Note:** use `py` rather than `python` on Windows. Typing `python` can open the
+> Microsoft Store instead of running anything, because Windows ships a placeholder
+> by that name. `py` is the official Python launcher and always points at your real
+> install.
+
+#### 2. Download the project
+
+**Without git — recommended if you don't already use it:**
+
+1. Go to <https://github.com/Ishaan3H/india-sector-screener>
+2. Click the green **Code** button → **Download ZIP**
+3. Open your Downloads folder, right-click `india-sector-screener-main.zip` →
+   **Extract All…** → **Extract**
+
+**With git,** if you have [Git for Windows](https://git-scm.com/download/win):
+
+```powershell
 git clone https://github.com/Ishaan3H/india-sector-screener.git
 ```
 
-No account or credentials needed. If you'd rather not use git at all, download
-the ZIP from the repo's green **Code** button and unzip it instead.
+#### 3. Open PowerShell in that folder
 
-### 2. Enter the folder
+In File Explorer, open the extracted folder (the one containing `screener.py`),
+then hold <kbd>Shift</kbd>, right-click any empty space inside it, and choose
+**Open PowerShell window here**. Or `cd` to it manually:
+
+```powershell
+cd $HOME\Downloads\india-sector-screener-main
+```
+
+#### 4. Generate the screener
+
+```powershell
+.\run_weekly.bat
+```
+
+If PowerShell blocks the script, run the two steps directly instead — this always
+works:
+
+```powershell
+py screener.py
+py render.py
+```
+
+#### 5. Open the page
+
+```powershell
+start index.html
+```
+
+Or just double-click `index.html` in File Explorer.
+
+---
+
+### macOS / Linux
+
+macOS ships with Python 3; most Linux distributions do too. Check with
+`python3 --version`, and install from [python.org](https://www.python.org/downloads/)
+or your package manager if it's missing.
 
 ```bash
+git clone https://github.com/Ishaan3H/india-sector-screener.git
 cd india-sector-screener
-```
-
-### 3. Generate the screener
-
-On **macOS or Linux**:
-
-```bash
 ./run_weekly.sh
-```
-
-On **Windows** (PowerShell or Command Prompt), run the two steps directly:
-
-```bash
-python screener.py
-python render.py
-```
-
-Either route takes about 30 seconds — it downloads ~278 daily price series from
-Yahoo Finance and writes `data.json`, then renders `index.html`.
-
-### 4. Open the page
-
-```bash
 open index.html          # macOS
 xdg-open index.html      # Linux
-start index.html         # Windows
 ```
 
-Or just double-click `index.html` in your file manager. It's a single
-self-contained file — no server, no internet connection needed to view it.
+No account or credentials needed to clone. If you'd rather not use git, download
+the ZIP from the green **Code** button and unzip it instead.
+
+---
+
+### What to expect
+
+The fetch takes about 30 seconds — it downloads ~278 daily price series from Yahoo
+Finance, writes `data.json`, then renders `index.html`. You need an internet
+connection for that step, but not to view the finished page: `index.html` is one
+self-contained file with no server and no external assets.
+
+The script prints the week it computed and the leading sectors before it finishes:
 
 ### What you should see
 
@@ -90,8 +152,9 @@ One or two names in `unresolved` is normal. Many is not — see
 
 ## Refreshing it every week
 
-Run `./run_weekly.sh` again whenever you want fresh numbers. Each run overwrites
-`data.json` and `index.html` with the latest completed trading week.
+Run the same command again whenever you want fresh numbers — `.\run_weekly.bat` on
+Windows, `./run_weekly.sh` on macOS/Linux. Each run overwrites `data.json` and
+`index.html` with the latest completed trading week.
 
 The natural cadence is **Saturday morning IST**, once Friday's 15:30 IST close has
 settled. To automate that:
@@ -102,9 +165,18 @@ settled. To automate that:
 0 9 * * 6 /full/path/to/india-sector-screener/run_weekly.sh >> /tmp/screener.log 2>&1
 ```
 
-**Windows — Task Scheduler.** Create a weekly task for Saturday 09:00 whose
-action runs `python` with argument `screener.py`, starting in the project folder;
-add a second action for `render.py`.
+**Windows — Task Scheduler.** Press <kbd>Win</kbd> and open **Task Scheduler**, then
+**Create Basic Task…**:
+
+1. Name it anything, e.g. *India sector screener*
+2. Trigger: **Weekly** → tick **Saturday** → start time `09:00`
+3. Action: **Start a program**
+4. Program/script: browse to `run_weekly.bat` in the project folder
+5. **Start in (optional):** set this to the project folder path — leave it blank
+   and the task runs from `system32`, where it won't find the scripts
+
+Tick *"Open the Properties dialog"* at the end if you also want *"Run whether user
+is logged on or not."*
 
 `data.json` is only overwritten on a successful fetch, so a failed run leaves the
 previous week's page intact rather than blanking it.
@@ -139,7 +211,8 @@ previous week's page intact rather than blanking it.
 | `universe.py` | Sector → constituent ticker map, and the benchmark indices |
 | `screener.py` | Fetches prices, computes returns, writes `data.json` |
 | `render.py` | Turns `data.json` into `index.html` (charts are hand-built inline SVG) |
-| `run_weekly.sh` | Driver: fetch → render → print summary |
+| `run_weekly.sh` | Driver for macOS/Linux: fetch → render → print summary |
+| `run_weekly.bat` | Same driver for Windows |
 | `validate_tickers.py` | Checks every ticker still resolves and is fresh |
 | `data.json` | Generated — the computed dataset for one week |
 | `index.html` | Generated — the screener page |

@@ -257,7 +257,9 @@ def build():
         },
     }
 
-    with open(OUT, "w") as fh:
+    # encoding is explicit everywhere: Python defaults to the locale encoding on
+    # Windows (cp1252), which cannot represent the rupee sign or the arrows.
+    with open(OUT, "w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=1)
     print(f"wrote {OUT}: week {week_start} -> {week_end}, "
           f"{len(sectors)} sectors, {len(metrics)} stocks")
