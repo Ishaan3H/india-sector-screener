@@ -5,7 +5,10 @@ lists the best-performing shares inside each one. Generates a self-contained HTM
 page — two charts, a full sector table, per-sector leaders, and the week's biggest
 movers across the whole universe.
 
-Covers **277 NSE/BSE-listed stocks across 21 sectors**, plus five benchmark
+**Live page — updates itself every Saturday:**
+<https://ishaan3h.github.io/india-sector-screener/>
+
+Covers **~278 NSE/BSE-listed stocks across 21 sectors**, plus five benchmark
 indices (Nifty 50, Sensex, Nifty 500, Midcap 50, Smallcap 250).
 
 ---
@@ -150,19 +153,55 @@ One or two names in `unresolved` is normal. Many is not — see
 
 ---
 
-## Refreshing it every week
+## Keeping it up to date
 
-Run the same command again whenever you want fresh numbers — `.\run_weekly.bat` on
-Windows, `./run_weekly.sh` on macOS/Linux. Each run overwrites `data.json` and
-`index.html` with the latest completed trading week.
+### Automatic — GitHub Actions (no computer required)
 
-The natural cadence is **Saturday morning IST**, once Friday's 15:30 IST close has
-settled. To automate that:
+**The page updates itself.** A scheduled workflow
+([`.github/workflows/weekly-refresh.yml`](.github/workflows/weekly-refresh.yml))
+runs on GitHub's servers every **Saturday at 05:00 UTC / 10:30 IST**, after
+Friday's 15:30 IST close has settled into the price feed. It re-fetches every
+price, rebuilds the page, sanity-checks the result, commits the new week, and
+republishes the live site:
 
-**macOS / Linux — cron.** Run `crontab -e` and add (use your own absolute path):
+**<https://ishaan3h.github.io/india-sector-screener/>**
+
+Because it runs on GitHub rather than a laptop, it keeps working whether or not
+your machine is switched on, and it cannot be broken by moving or renaming a
+local folder.
+
+If a fetch goes wrong, `check_output.py` fails the run and **nothing is
+published** — the previous good week stays up. You get an email from GitHub, and
+the Actions tab shows exactly which check failed.
+
+**Run it on demand:** repo → **Actions** tab → *Weekly refresh* → **Run
+workflow**. Useful for testing, or to pick up a correction mid-week.
+
+> Two GitHub caveats worth knowing: cron runs are queued on shared infrastructure
+> and can start anywhere from a few minutes to about an hour late, so treat the
+> time as approximate. And GitHub disables scheduled workflows in public repos
+> after **60 days with no repository activity** — the weekly commit normally keeps
+> it alive, but if the schedule ever goes quiet, re-enable it from the Actions tab.
+
+### Manual
+
+Run `.\run_weekly.bat` (Windows) or `./run_weekly.sh` (macOS/Linux) whenever you
+want fresh numbers. Each run overwrites `data.json` and `index.html` with the
+latest completed trading week.
+
+`data.json` is only overwritten on a successful fetch, so a failed run leaves the
+previous week's page intact rather than blanking it.
+
+### Automatic on your own machine (optional)
+
+Only worth setting up if you want a local copy refreshed too — the GitHub workflow
+above already keeps the published page current.
+
+**macOS / Linux — cron.** Run `crontab -e` and add (use your own absolute path,
+and quote it if it contains spaces):
 
 ```bash
-0 9 * * 6 /full/path/to/india-sector-screener/run_weekly.sh >> /tmp/screener.log 2>&1
+0 9 * * 6 "/full/path/to/india-sector-screener/run_weekly.sh" >> /tmp/screener.log 2>&1
 ```
 
 **Windows — Task Scheduler.** Press <kbd>Win</kbd> and open **Task Scheduler**, then
@@ -175,11 +214,9 @@ settled. To automate that:
 5. **Start in (optional):** set this to the project folder path — leave it blank
    and the task runs from `system32`, where it won't find the scripts
 
-Tick *"Open the Properties dialog"* at the end if you also want *"Run whether user
-is logged on or not."*
-
-`data.json` is only overwritten on a successful fetch, so a failed run leaves the
-previous week's page intact rather than blanking it.
+A local schedule points at one fixed path, so remember to update it if you ever
+move the folder — a moved folder is the most common reason one of these silently
+stops working.
 
 ---
 
@@ -214,6 +251,8 @@ previous week's page intact rather than blanking it.
 | `run_weekly.sh` | Driver for macOS/Linux: fetch → render → print summary |
 | `run_weekly.bat` | Same driver for Windows |
 | `validate_tickers.py` | Checks every ticker still resolves and is fresh |
+| `check_output.py` | Fails the build if a fetch produced bad data, so it is never published |
+| `.github/workflows/weekly-refresh.yml` | Weekly cloud refresh + publish to GitHub Pages |
 | `data.json` | Generated — the computed dataset for one week |
 | `index.html` | Generated — the screener page |
 
