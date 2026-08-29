@@ -159,8 +159,7 @@ One or two names in `unresolved` is normal. Many is not — see
 
 **The page updates itself.** A scheduled workflow
 ([`.github/workflows/weekly-refresh.yml`](.github/workflows/weekly-refresh.yml))
-runs on GitHub's servers every **Saturday at 05:00 UTC / 10:30 IST**, after
-Friday's 15:30 IST close has settled into the price feed. It re-fetches every
+runs on GitHub's servers every **Sunday at 01:00 UTC / 06:30 IST**. It re-fetches every
 price, rebuilds the page, sanity-checks the result, commits the new week, and
 republishes the live site:
 
@@ -177,8 +176,14 @@ the Actions tab shows exactly which check failed.
 **Run it on demand:** repo → **Actions** tab → *Weekly refresh* → **Run
 workflow**. Useful for testing, or to pick up a correction mid-week.
 
-> Two GitHub caveats worth knowing: cron runs are queued on shared infrastructure
-> and can start anywhere from a few minutes to about an hour late, so treat the
+> **Why Sunday, not Saturday?** Yahoo backfills Friday's *daily* bars slowly and
+> unevenly. A Saturday run — even a delayed one at 11:26 UTC — saw no Friday bar
+> at all, so it silently produced a four-session week with Friday missing. That is
+> the worst kind of error: the page looks fine and is simply wrong. Sunday morning
+> is about 39 hours after the close, comfortably clear of the lag.
+>
+> Other GitHub caveats: cron runs are queued on shared infrastructure and can start
+> late — the first scheduled run here fired 6.5 hours behind its slot — so treat the
 > time as approximate. And GitHub disables scheduled workflows in public repos
 > after **60 days with no repository activity** — the weekly commit normally keeps
 > it alive, but if the schedule ever goes quiet, re-enable it from the Actions tab.
@@ -201,14 +206,14 @@ above already keeps the published page current.
 and quote it if it contains spaces):
 
 ```bash
-0 9 * * 6 "/full/path/to/india-sector-screener/run_weekly.sh" >> /tmp/screener.log 2>&1
+0 7 * * 0 "/full/path/to/india-sector-screener/run_weekly.sh" >> /tmp/screener.log 2>&1
 ```
 
 **Windows — Task Scheduler.** Press <kbd>Win</kbd> and open **Task Scheduler**, then
 **Create Basic Task…**:
 
 1. Name it anything, e.g. *India sector screener*
-2. Trigger: **Weekly** → tick **Saturday** → start time `09:00`
+2. Trigger: **Weekly** → tick **Sunday** → start time `07:00`
 3. Action: **Start a program**
 4. Program/script: browse to `run_weekly.bat` in the project folder
 5. **Start in (optional):** set this to the project folder path — leave it blank

@@ -5,9 +5,15 @@ name: Weekly refresh
 
 on:
   schedule:
-    # 05:00 UTC Saturday = 10:30 IST. Friday's 15:30 IST close has settled into
-    # the daily price series by then (it is often still missing late Friday night).
-    - cron: "0 5 * * 6"
+    # 01:00 UTC Sunday = 06:30 IST Sunday.
+    #
+    # Deliberately NOT Saturday. Yahoo backfills Friday's DAILY bars slowly and
+    # unevenly - on 29 Aug 2026 a 11:26 UTC Saturday run still saw no Friday bar
+    # for any symbol, and the index series lagged the stocks by another six hours.
+    # A Saturday run therefore clips Friday off the week every time, which is not
+    # visible in the output: it just quietly reports a four-session week. Sunday
+    # morning is ~39h after the close and comfortably clear of the lag.
+    - cron: "0 1 * * 0"
   workflow_dispatch:        # adds a "Run workflow" button on the Actions tab
 
 permissions:

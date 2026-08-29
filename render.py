@@ -284,12 +284,22 @@ def build_html(d):
         else "week so far — still in progress"
     )
 
-    tiles = "".join(
-        f'<div class="tile"><div class="tile-k">{esc(b["label"])}</div>'
-        f'<div class="tile-v {"up" if b["week"]>=0 else "down"}">{fmt(b["week"])}</div>'
-        f'<div class="tile-s">{b["last"]:,.0f} · 1M {fmt(b["month"])}</div></div>'
-        for b in d["benchmarks"]
-    )
+    # Index daily bars are published later than stock bars, so a benchmark can
+    # still be a session behind the universe. Say so on the tile rather than
+    # letting a Thursday number sit silently under a Mon-Fri headline.
+    def tile(b):
+        lag = ""
+        if b.get("week_end") and b["week_end"] != d["week_end"]:
+            lag = (f'<div class="tile-lag" title="This index has not published '
+                   f'{d["week_end"]} yet, so its figure covers a shorter week.">'
+                   f'to {d_fmt(dt.date.fromisoformat(b["week_end"]))} only</div>')
+        return (
+            f'<div class="tile"><div class="tile-k">{esc(b["label"])}</div>'
+            f'<div class="tile-v {"up" if b["week"]>=0 else "down"}">{fmt(b["week"])}</div>'
+            f'<div class="tile-s">{b["last"]:,.0f} · 1M {fmt(b["month"])}</div>{lag}</div>'
+        )
+
+    tiles = "".join(tile(b) for b in d["benchmarks"])
 
     sec_rows = "".join(
         f'<tr><td class="rank">{i+1}</td><td><b>{esc(s["sector"])}</b></td>'
@@ -393,6 +403,7 @@ section {{
 .tile-k {{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }}
 .tile-v {{ font-size:23px; font-weight:650; margin-top:3px; letter-spacing:-.02em; }}
 .tile-s {{ font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }}
+.tile-lag {{ font-size:11px; color:var(--loss-ink); margin-top:3px; }}
 .up {{ color:var(--gain-ink); }}
 .down {{ color:var(--loss-ink); }}
 .scroll {{ overflow-x:auto; -webkit-overflow-scrolling:touch; }}
